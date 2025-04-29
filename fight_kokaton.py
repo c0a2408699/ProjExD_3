@@ -112,7 +112,7 @@ class Bomb:
     """
     爆弾に関するクラス
     """
-    def __init__(self, color: tuple[int, int, int], rad: int):
+    def __init__(self, color: tuple[int, int, int], rad: int,num:int):
         """
         引数に基づき爆弾円Surfaceを生成する
         引数1 color：爆弾円の色タプル
@@ -124,7 +124,6 @@ class Bomb:
         self.rct = self.img.get_rect()
         self.rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
         self.vx, self.vy = +5, +5
-
     def update(self, screen: pg.Surface):
         """
         爆弾を速度ベクトルself.vx, self.vyに基づき移動させる
@@ -144,10 +143,15 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
-    bomb = Bomb((255, 0, 0), 10)
+    NUM_OF_BOMS=5
+    bombs=[]
+    for i in range (0,NUM_OF_BOMS):
+        bombs.append(Bomb((255, 0, 0), 10,i))
     clock = pg.time.Clock()
     tmr = 0
     beam = None
+    
+        
                                                                              
     while True:
         
@@ -159,29 +163,30 @@ def main():
                 beam = Beam(bird)            
         screen.blit(bg_img, [0, 0])
         
-        
-        if bird.rct.colliderect(bomb.rct):
+        for i in range(0,NUM_OF_BOMS):
+            #爆弾の数だけ判定を追加
+            if bird.rct.colliderect(bombs[i].rct):
             # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
-            bird.change_img(8, screen)
+                bird.change_img(8, screen)
             #ゲームオーバー画面
             fonto = pg.font.Font(None, 80) 
             txt = fonto.render("Game Over", True, (255, 0, 0)) 
             screen.blit(txt, [WIDTH//2-150, HEIGHT//2])
-            pg.display.update()
-            time.sleep(1)
-            return
-        if beam != None:  # beam が生成されている場合のみ update を呼び出す
-            beam.update(screen)
-            if beam.rct.colliderect(bomb.rct):
-            # ビームで撃ち落とす
-                bird.change_img(6, screen)
-                #ヒットストップ
                 pg.display.update()
-                time.sleep(0.1)
-
+                time.sleep(1)
+                return
+            if beam != None:  
+                if beam.rct.colliderect(bombs[i].rct):
+            # ビームで撃ち落とす
+                    bird.change_img(6, screen)
+                #ヒットストップ
+                    pg.display.update()
+                    time.sleep(0.1)
+            bombs[i].update(screen)
+        if beam != None:  # beam が生成されている場合のみ update を呼び出す
+                beam.update(screen)
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
-        bomb.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)

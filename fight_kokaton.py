@@ -85,14 +85,14 @@ class Bird:
 
 
 class Beam:
-    # """
-    # こうかとんが放つビームに関するクラス
-    # """
+    """
+    こうかとんが放つビームに関するクラス
+    """
     def __init__(self, bird:"Bird"):
-    #     """
-    #     ビーム画像Surfaceを生成する
-    #     引数 bird：ビームを放つこうかとん（Birdインスタンス）
-    #     """
+        """
+        ビーム画像Surfaceを生成する
+        引数 bird：ビームを放つこうかとん（Birdインスタンス）
+        """
         self.img = pg.image.load(f"fig/beam.png")
         self.rct = self.img.get_rect()
         self.rct.center = bird.rct.center
@@ -136,6 +136,16 @@ class Bomb:
             self.vy *= -1
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
+    
+class Score:
+    def __init__(self):
+        self.fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
+        
+            
+    def update(self,playscore,screen):
+            self.txt = self.fonto.render("スコア："+str(playscore), False, (0, 0, 255))
+            screen.blit(self.txt, [100, screen.get_height()-50])
+
 
 
 def main():
@@ -150,7 +160,8 @@ def main():
     clock = pg.time.Clock()
     tmr = 0
     beam = None
-    
+    score=Score()
+    playscore=0
         
                                                                              
     while True:
@@ -181,13 +192,15 @@ def main():
             # ビームで撃ち落とす
                     bird.change_img(6, screen)
                     beam=None
+                    playscore+=1
                 #ヒットストップ
                     pg.display.update()
-                    time.sleep(1)
+                    time.sleep(0.5)
             bombs[i].update(screen)
         if beam != None:  # beam が生成されている場合のみ update を呼び出す
                 beam.update(screen)
         key_lst = pg.key.get_pressed()
+        score.update(playscore,screen)
         bird.update(key_lst, screen)
         pg.display.update()
         tmr += 1

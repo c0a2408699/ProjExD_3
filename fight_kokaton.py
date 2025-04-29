@@ -106,21 +106,21 @@ class Beam:
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
         
-
 class Bomb:
     """
     爆弾に関するクラス
     """
-    def __init__(self, rad: int,num:int):
+    def __init__(self, rad: int):
         """
         引数に基づき爆弾円Surfaceを生成する
         引数1 color：爆弾円の色タプル
         引数2 rad：爆弾円の半径
         """
+        self.rad=rad
         self.img = pg.Surface((2*rad, 2*rad))
         self.color=(255, 200, 0)
         pg.draw.circle(self.img, self.color, (rad, rad), rad)
-        self.img.set_colorkey((0, 0, 0))
+       
         self.rct = self.img.get_rect()
         self.rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
         self.vx, self.vy = +3, +3
@@ -130,8 +130,12 @@ class Bomb:
         爆弾を速度ベクトルself.vx, self.vyに基づき移動させる
         引数 screen：画面Surface
         """
-        pg.draw.circle(self.img, self.color, (10, 10), 10)
-        yoko, tate = check_bound(self.rct)
+        self.img = pg.Surface((2*self.rad, 2*self.rad))
+        #色の変化を反映
+        pg.draw.circle(self.img, self.color, (self.rad, self.rad),  self.rad)
+        self.img.set_colorkey((0, 0, 0))
+
+        yoko, tate = check_bound(self.rct) 
         if not yoko:
             self.vx *= -1
         if not tate:
@@ -142,10 +146,14 @@ class Bomb:
     体力処理
     """
     def damage(self,damage,life):
+        #無敵時間じゃなかったら
         if life<=0:
+            #hpからダメージを引く
             self.hp-=int(damage)
-            self.vx *= 1.5
-            self.vy *= 1.5
+            #ダメージを受けるたびに1.7倍加速
+            self.vx *= 1.7
+            self.vy *= 1.7
+            #色設定
             if self.hp==2:
                 self.color=(255, 100, 0)
             if self.hp==1:
@@ -160,9 +168,7 @@ class Score:
     スコア表示クラス
     """
     def __init__(self):
-        self.fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
-        
-            
+        self.fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)    
     def update(self,playscore,screen):
             self.txt = self.fonto.render("スコア："+str(playscore), False, (0, 0, 255))
             screen.blit(self.txt, [100, screen.get_height()-50])
@@ -192,7 +198,7 @@ def main():
     bird = Bird((300, 200))
     NUM_OF_BOMS=5
     bombs=[]
-    clock = pg.time.Clock()
+    clock = pg.time.Clock() 
     tmr = 0
     score=Score()
     playscore=0
@@ -200,19 +206,18 @@ def main():
     life=0
     beams=[]
     for i in range (0,NUM_OF_BOMS):
-        bombs.append(Bomb(10,i))        
-                                            
+        bombs.append(Bomb(20))
+
+
     while True:
-        
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
             # スペースキーでBeamクラスのインスタンス生成
                 beams.append(Beam(bird)) 
-               
         screen.blit(bg_img, [0, 0])
-        
+
         for bomb in bombs:  
             #爆弾の数だけ判定を追加
             if bird.rct.colliderect(bomb.rct):
@@ -236,13 +241,16 @@ def main():
                     #lifeが0以下でダメージ判定
                         bomb.damage(1,life)
                     #玉の無敵時間と爆発エフェクトの表示時間
-                        life=50
-                        if bomb.get_hp()==0:
+            
+                        if bomb.get_hp()==0 and life<=0:
+                            
                             bombs.remove(bomb)
-                        bird.change_img(6, screen)
+                        life=50
                         playscore+=1
+                        bird.change_img(6, screen)
+                        
                     #ヒットストップ
-                        pg.display.update()
+                        pg.display.update() 
         for beam in beams:
             yoko, tate = check_bound(beam.rct)
             if not yoko and not tate:

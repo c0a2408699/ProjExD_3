@@ -111,23 +111,26 @@ class Bomb:
     """
     爆弾に関するクラス
     """
-    def __init__(self, color: tuple[int, int, int], rad: int,num:int):
+    def __init__(self, rad: int,num:int):
         """
         引数に基づき爆弾円Surfaceを生成する
         引数1 color：爆弾円の色タプル
         引数2 rad：爆弾円の半径
         """
         self.img = pg.Surface((2*rad, 2*rad))
-        pg.draw.circle(self.img, color, (rad, rad), rad)
+        self.color=(255, 200, 0)
+        pg.draw.circle(self.img, self.color, (rad, rad), rad)
         self.img.set_colorkey((0, 0, 0))
         self.rct = self.img.get_rect()
         self.rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
-        self.vx, self.vy = +5, +5
+        self.vx, self.vy = +3, +3
+        self.hp=3
     def update(self, screen: pg.Surface):
         """
         爆弾を速度ベクトルself.vx, self.vyに基づき移動させる
         引数 screen：画面Surface
         """
+        pg.draw.circle(self.img, self.color, (10, 10), 10)
         yoko, tate = check_bound(self.rct)
         if not yoko:
             self.vx *= -1
@@ -135,9 +138,21 @@ class Bomb:
             self.vy *= -1
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
-    def stop(self):
-        self.vx = 0
-        self.vx = 0
+    """
+    体力処理
+    """
+    def damage(self,damage,life):
+        if life<=0:
+            self.hp-=int(damage)
+            self.vx *= 1.5
+            self.vy *= 1.5
+            if self.hp==2:
+                self.color=(255, 100, 0)
+            if self.hp==1:
+                self.color=(255, 0, 0)
+    def get_hp(self): 
+        return int(self.hp)
+  
 
 
 class Score:
@@ -162,12 +177,12 @@ class Explosion:
          self.imgs=[self.img,pg.transform.flip(self.img, True, True)]
          self.rct = self.img.get_rect()
          self.i=0
-         self.life=10
     def update(self,screen,bomb,life):
         if life>0:
             self.i=(life/8)%2
             self.rct.center = bomb.rct.center
             screen.blit(self.imgs[int(self.i)], self.rct)
+       
             
 
 def main():
@@ -185,7 +200,7 @@ def main():
     life=0
     beams=[]
     for i in range (0,NUM_OF_BOMS):
-        bombs.append(Bomb((255, 0, 0), 10,i))        
+        bombs.append(Bomb(10,i))        
                                             
     while True:
         
@@ -208,23 +223,26 @@ def main():
                 txt = fonto.render("Game Over", True, (255, 0, 0)) 
                 screen.blit(txt, [WIDTH//2-150, HEIGHT//2])
                 pg.display.update()
-                time.sleep(1)
                 return
         for bomb in bombs:     
             for beam in beams:
                 if beam != None and bomb!=None:  
                     if beam.rct.colliderect(bomb.rct):
-                    #爆発
-                        life=80
-                        explode_bomb=bomb
                     # ビームで撃ち落とす
+                    #爆発座標取得    
+                        explode_bomb=bomb
+                    #ビーム削除  
                         beams.remove(beam)
-                        bombs.remove(bomb)
+                    #lifeが0以下でダメージ判定
+                        bomb.damage(1,life)
+                    #玉の無敵時間と爆発エフェクトの表示時間
+                        life=50
+                        if bomb.get_hp()==0:
+                            bombs.remove(bomb)
                         bird.change_img(6, screen)
                         playscore+=1
                     #ヒットストップ
                         pg.display.update()
-                        time.sleep(0.1)
         for beam in beams:
             yoko, tate = check_bound(beam.rct)
             if not yoko and not tate:
@@ -234,7 +252,7 @@ def main():
         for bomb in bombs:
             if bomb is not None:
                 bomb.update(screen)
-                #爆発エフェクト
+                #着弾判定
                 if life>0:
                     explosion.update(screen,explode_bomb,life)
                     life-=1

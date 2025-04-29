@@ -136,8 +136,15 @@ class Bomb:
             self.vy *= -1
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
-    
+    def stop(self):
+        self.vx = 0
+        self.vx = 0
+
+
 class Score:
+    """
+    スコア表示クラス
+    """
     def __init__(self):
         self.fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
         
@@ -147,6 +154,22 @@ class Score:
             screen.blit(self.txt, [100, screen.get_height()-50])
 
 
+class Explosion:
+    """
+    爆発エフェクト
+    """
+    def __init__ (self):
+         self.img = pg.image.load(f"fig/explosion.gif")
+         self.imgs=[self.img,pg.transform.flip(self.img, True, True)]
+         self.rct = self.img.get_rect()
+         self.i=0
+         self.life=10
+    def update(self,screen,bomb,life):
+        if life>0:
+            self.i=(life/8)%2
+            self.rct.center = bomb.rct.center
+            screen.blit(self.imgs[int(self.i)], self.rct)
+            
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
@@ -162,8 +185,9 @@ def main():
     beam = None
     score=Score()
     playscore=0
-        
-                                                                             
+    explosion=Explosion()  
+    life=0        
+                                            
     while True:
         
         for event in pg.event.get():
@@ -175,6 +199,7 @@ def main():
         screen.blit(bg_img, [0, 0])
         
         for i in range(0,NUM_OF_BOMS):
+            
             #爆弾の数だけ判定を追加
             if bird.rct.colliderect(bombs[i].rct):
                 
@@ -193,17 +218,26 @@ def main():
                     bird.change_img(6, screen)
                     beam=None
                     playscore+=1
+                    bombs[i].stop
+                    #爆発
+                    life=50
+                    explode_bomb=bombs[i]
+                   
                 #ヒットストップ
                     pg.display.update()
-                    time.sleep(0.5)
+                    time.sleep(0.1)
             bombs[i].update(screen)
         if beam != None:  # beam が生成されている場合のみ update を呼び出す
                 beam.update(screen)
+        if life>0:
+            explosion.update(screen,explode_bomb,life)
+            life-=1
         key_lst = pg.key.get_pressed()
         score.update(playscore,screen)
         bird.update(key_lst, screen)
         pg.display.update()
         tmr += 1
+        
         clock.tick(50)
 
 

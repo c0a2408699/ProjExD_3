@@ -119,8 +119,7 @@ class Bomb:
         self.rad=rad
         self.img = pg.Surface((2*rad, 2*rad))
         self.color=(255, 200, 0)
-        pg.draw.circle(self.img, self.color, (rad, rad), rad)
-       
+        pg.draw.circle(self.img, self.color, (rad, rad), rad)       
         self.rct = self.img.get_rect()
         self.rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
         self.vx, self.vy = +3, +3
@@ -134,7 +133,6 @@ class Bomb:
         #色の変化を反映
         pg.draw.circle(self.img, self.color, (self.rad, self.rad),  self.rad)
         self.img.set_colorkey((0, 0, 0))
-
         yoko, tate = check_bound(self.rct) 
         if not yoko:
             self.vx *= -1
@@ -161,7 +159,6 @@ class Bomb:
     def get_hp(self): 
         return int(self.hp)
   
-
 
 class Score:
     """
@@ -190,7 +187,6 @@ class Explosion:
             screen.blit(self.imgs[int(self.i)], self.rct)
        
             
-
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
@@ -217,7 +213,6 @@ def main():
             # スペースキーでBeamクラスのインスタンス生成
                 beams.append(Beam(bird)) 
         screen.blit(bg_img, [0, 0])
-
         for bomb in bombs:  
             #爆弾の数だけ判定を追加
             if bird.rct.colliderect(bomb.rct):
@@ -241,14 +236,11 @@ def main():
                     #lifeが0以下でダメージ判定
                         bomb.damage(1,life)
                     #玉の無敵時間と爆発エフェクトの表示時間
-            
-                        if bomb.get_hp()==0 and life<=0:
-                            
+                        if bomb.get_hp()==0 and life<=0:   
                             bombs.remove(bomb)
                         life=50
                         playscore+=1
-                        bird.change_img(6, screen)
-                        
+                        bird.change_img(6, screen)  
                     #ヒットストップ
                         pg.display.update() 
         for beam in beams:
@@ -264,15 +256,11 @@ def main():
                 if life>0:
                     explosion.update(screen,explode_bomb,life)
                     life-=1
-           
-            
-       
         key_lst = pg.key.get_pressed()
         score.update(playscore,screen)
         bird.update(key_lst, screen)
         pg.display.update()
         tmr += 1
-        
         clock.tick(50)
 
 

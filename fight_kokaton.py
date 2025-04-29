@@ -103,10 +103,9 @@ class Beam:
     #     ビームを速度ベクトルself.vx, self.vyに基づき移動させる
     #     引数 screen：画面Surface
     #     """
-        if check_bound(self.rct) == (True, True):
-            self.rct.move_ip(self.vx, self.vy)
-            screen.blit(self.img, self.rct)    
-
+        self.rct.move_ip(self.vx, self.vy)
+        screen.blit(self.img, self.rct)
+        
 
 class Bomb:
     """
@@ -178,15 +177,15 @@ def main():
     bird = Bird((300, 200))
     NUM_OF_BOMS=5
     bombs=[]
-    for i in range (0,NUM_OF_BOMS):
-        bombs.append(Bomb((255, 0, 0), 10,i))
     clock = pg.time.Clock()
     tmr = 0
-    beam = None
     score=Score()
     playscore=0
     explosion=Explosion()  
-    life=0        
+    life=0
+    beams=[]
+    for i in range (0,NUM_OF_BOMS):
+        bombs.append(Bomb((255, 0, 0), 10,i))        
                                             
     while True:
         
@@ -194,44 +193,54 @@ def main():
             if event.type == pg.QUIT:
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            #     # スペースキー押下でBeamクラスのインスタンス生成
-                beam = Beam(bird)            
+            # スペースキーでBeamクラスのインスタンス生成
+                beams.append(Beam(bird)) 
+               
         screen.blit(bg_img, [0, 0])
         
-        for i in range(0,NUM_OF_BOMS):
-            
+        for bomb in bombs:  
             #爆弾の数だけ判定を追加
-            if bird.rct.colliderect(bombs[i].rct):
-                
+            if bird.rct.colliderect(bomb.rct):
+            #ゲームオーバー画面    
             # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
                 bird.change_img(8, screen)
-            #ゲームオーバー画面
                 fonto = pg.font.Font(None, 80) 
                 txt = fonto.render("Game Over", True, (255, 0, 0)) 
                 screen.blit(txt, [WIDTH//2-150, HEIGHT//2])
                 pg.display.update()
                 time.sleep(1)
                 return
-            if beam != None:  
-                if beam.rct.colliderect(bombs[i].rct):
-            # ビームで撃ち落とす
-                    bird.change_img(6, screen)
-                    beam=None
-                    playscore+=1
-                    bombs[i].stop
+        for bomb in bombs:     
+            for beam in beams:
+                if beam != None and bomb!=None:  
+                    if beam.rct.colliderect(bomb.rct):
                     #爆発
-                    life=50
-                    explode_bomb=bombs[i]
-                   
-                #ヒットストップ
-                    pg.display.update()
-                    time.sleep(0.1)
-            bombs[i].update(screen)
-        if beam != None:  # beam が生成されている場合のみ update を呼び出す
+                        life=80
+                        explode_bomb=bomb
+                    # ビームで撃ち落とす
+                        beams.remove(beam)
+                        bombs.remove(bomb)
+                        bird.change_img(6, screen)
+                        playscore+=1
+                    #ヒットストップ
+                        pg.display.update()
+                        time.sleep(0.1)
+        for beam in beams:
+            yoko, tate = check_bound(beam.rct)
+            if not yoko and not tate:
+                beams.remove   
+            if beam is not None:
                 beam.update(screen)
-        if life>0:
-            explosion.update(screen,explode_bomb,life)
-            life-=1
+        for bomb in bombs:
+            if bomb is not None:
+                bomb.update(screen)
+                #爆発エフェクト
+                if life>0:
+                    explosion.update(screen,explode_bomb,life)
+                    life-=1
+           
+            
+       
         key_lst = pg.key.get_pressed()
         score.update(playscore,screen)
         bird.update(key_lst, screen)

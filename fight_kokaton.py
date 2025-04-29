@@ -166,12 +166,13 @@ def main():
         for i in range(0,NUM_OF_BOMS):
             #爆弾の数だけ判定を追加
             if bird.rct.colliderect(bombs[i].rct):
+                
             # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
                 bird.change_img(8, screen)
             #ゲームオーバー画面
-            fonto = pg.font.Font(None, 80) 
-            txt = fonto.render("Game Over", True, (255, 0, 0)) 
-            screen.blit(txt, [WIDTH//2-150, HEIGHT//2])
+                fonto = pg.font.Font(None, 80) 
+                txt = fonto.render("Game Over", True, (255, 0, 0)) 
+                screen.blit(txt, [WIDTH//2-150, HEIGHT//2])
                 pg.display.update()
                 time.sleep(1)
                 return
@@ -179,9 +180,10 @@ def main():
                 if beam.rct.colliderect(bombs[i].rct):
             # ビームで撃ち落とす
                     bird.change_img(6, screen)
+                    beam=None
                 #ヒットストップ
                     pg.display.update()
-                    time.sleep(0.1)
+                    time.sleep(1)
             bombs[i].update(screen)
         if beam != None:  # beam が生成されている場合のみ update を呼び出す
                 beam.update(screen)
